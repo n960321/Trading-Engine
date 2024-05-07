@@ -4,14 +4,16 @@ package model
 type OrderAction int
 
 const (
-	Cancel OrderAction = iota // 取消掛單
-	Create                    // 創建掛單
+	OrderActionUnknow OrderAction = iota // 未知
+	OrderActionCreate                    // 創建掛單
+	OrderActionCancel                    // 取消掛單
 )
 
 // 訂單走向
 type OrderSide int
 
 const (
-	Buy  OrderSide = iota // 買單
-	Sell                  // 賣單
+	OrderSideUnknow OrderSide = iota // 未知
+	OrderSideBuy                     // 買單
+	OrderSideSell                    // 賣單
 )

@@ -15,9 +15,9 @@ type PriceTree struct {
 func NewPriceTree(side OrderSide) *PriceTree {
 	var tree *rbt.Tree
 	switch side {
-	case Buy:
+	case OrderSideBuy:
 		tree = rbt.NewWith(BuySideComparator)
-	case Sell:
+	case OrderSideSell:
 		tree = rbt.NewWith(SellSideComparator)
 	}
 	return &PriceTree{
@@ -96,7 +96,7 @@ func (p *PriceTree) GetOrdersBetweenPirceWithAmount(price, laveAmount decimal.De
 	it := p.tree.Iterator()
 	for it.Next() {
 		curPrice := it.Key().(decimal.Decimal)
-		if p.side == Buy && curPrice.LessThan(price) || (p.side == Sell && curPrice.GreaterThan(price)) {
+		if p.side == OrderSideBuy && curPrice.LessThan(price) || (p.side == OrderSideSell && curPrice.GreaterThan(price)) {
 			break
 		}
 

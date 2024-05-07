@@ -27,17 +27,17 @@ type OrderQueueior interface {
 func NewOrderBook() *OrderBook {
 	return &OrderBook{
 		Mux:       sync.Mutex{},
-		buyQueue:  NewPriceTree(Buy),
-		sellQueue: NewPriceTree(Sell),
+		buyQueue:  NewPriceTree(OrderSideBuy),
+		sellQueue: NewPriceTree(OrderSideSell),
 	}
 }
 
 // 將訂單加入訂單簿但不進行搓合
 func (b *OrderBook) AddOrder(order *Order) {
 	switch order.Side {
-	case Buy:
+	case OrderSideBuy:
 		b.buyQueue.AddOrder(order)
-	case Sell:
+	case OrderSideSell:
 		b.sellQueue.AddOrder(order)
 	}
 }
@@ -58,9 +58,9 @@ func (b *OrderBook) Match(order *Order) *MatchResult {
 	defer b.Mux.Unlock()
 	var makers []*Order
 	switch order.Side {
-	case Buy:
+	case OrderSideBuy:
 		makers = b.sellQueue.GetOrdersBetweenPirceWithAmount(order.Price, order.GetLaveAmount())
-	case Sell:
+	case OrderSideSell:
 		makers = b.buyQueue.GetOrdersBetweenPirceWithAmount(order.Price, order.GetLaveAmount())
 	}
 
@@ -110,9 +110,9 @@ func (b *OrderBook) Match(order *Order) *MatchResult {
 	// 從訂單簿中移除已經搓合完成的makers
 	for _, maker := range makers {
 		switch maker.Side {
-		case Buy:
+		case OrderSideBuy:
 			b.buyQueue.RemoveOrder(maker)
-		case Sell:
+		case OrderSideSell:
 			b.sellQueue.RemoveOrder(maker)
 		}
 	}
