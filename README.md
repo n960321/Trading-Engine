@@ -5,6 +5,33 @@
 ## 如何撮合
 
 限價單(Limit): 當掛單進來時會優先查找低於限價的最優價格，如果有，則依照時間優先來進行數量撮合，如果沒有則放進掛單簿。
+### 流程圖
+#### 掛買單流程圖
+```mermaid
+flowchart TD
+    Limit --> buy(從掛賣單中的最優價格開始取訂單\nAmount總數會剛好等於taker Amount 或超過一點)
+    buy --> check_buy{列表長度是否為零}
+    check_buy -- Yes --> addToBuy(加到掛單隊列)
+    check_buy -- No --> match(搓合成功 產生Match Result)
+    match --> delete_maker(刪除makers在掛賣列表的位置)
+    delete_maker --> buyAmount{掛買剩餘Amount大於0}
+    buyAmount -- Yes --> addToBuy
+    buyAmount -- No --> End
+    addToBuy --> End
+```
+#### 掛賣單流程圖
+```mermaid
+flowchart TD
+    Limit --> sell(從掛買單中的最優價格開始取訂單\nAmount總數會剛好等於taker Amount 或超過一點)
+    sell --> check_sell{列表長度是否為零}
+    check_sell -- Yes --> addToSell(加到賣單隊列)
+    check_sell -- No --> match(產生Match Result)
+    match --> delete_maker(刪除makers在掛買列表的位置)
+    delete_maker --> sellAmount{掛賣剩餘Amount大於0}
+    sellAmount -- Yes --> addToSell
+    sellAmount -- No --> End
+    addToSell --> End    
+```
 
 ## 如何設計掛單簿
 
@@ -15,7 +42,7 @@
 2. 查詢速度盡可能快。
 
 所以我評估了以下資料結構與演算法，來看何種適合
-* n 為資料數量，且時間複雜度都以最壞情況打算。
+* n 為資料數量。
 * 有兩個時間複雜度時，前者為平均，後者為最差。
 
 | Data Struct | Algorithm | Search | Insert | Remove |
@@ -29,4 +56,10 @@
 
 在這邊不自己做輪子，引用了在Github上的開源 [emirpasic/gods](https://github.com/emirpasic/gods?tab=readme-ov-file#redblacktree) 來實現紅黑樹。
 
-根據撮合規定，會有需要價格順序，再來是時間順序，所以我會有一個 `PriceTree` 以紅黑樹來實現，再來每個節點裡都會在放一個 `TimeTree` 也是以紅黑數來實現，用來排序時間且裡面會放各個Order。
+根據撮合規定，會有需要價格順序，再來是時間順序，所以我會有一個 `PriceTree` 以紅黑樹來實現，再來每個節點裡都會在放一個 `TimeTree` 也是以紅黑樹來實現，用來排序時間且裡面會放各個Order。
+
+
+## REF
+
+[AVL Tree](https://zh.wikipedia.org/zh-tw/AVL%E6%A0%91)
+[Red Black Tree](https://zh.wikipedia.org/zh-tw/%E7%BA%A2%E9%BB%91%E6%A0%91)
