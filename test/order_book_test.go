@@ -126,6 +126,8 @@ func Test_MatchOrders(t *testing.T) {
 	}
 }
 
+// TODO : 需要補一個測試是驗證撮合的正確性！
+
 
 func createOrder(q int64, side model.OrderSide, priceMin, priceMax, amountMin, amountMax int64) []*model.Order {
 	orders := make([]*model.Order, 0, q)
