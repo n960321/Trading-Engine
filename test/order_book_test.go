@@ -12,7 +12,7 @@ import (
 
 // 加入多筆訂單 確認order book 中的順序是對的
 func Test_AddOrders(t *testing.T) {
-	
+
 	sellOrders := createOrder(RandomInt(10000, 10000000), model.Sell, 1, 100, 10, 200)
 	buyOrders := createOrder(RandomInt(10000, 10000000), model.Buy, 1, 100, 10, 200)
 
@@ -24,9 +24,9 @@ func Test_AddOrders(t *testing.T) {
 		if r == 0 {
 			return !sellResult[i].CreatedAt.After(sellResult[j].CreatedAt)
 		} else if r == -1 {
-			return false
+			return true
 		}
-		return true
+		return false
 	})
 	buyResult := make([]*model.Order, len(buyOrders))
 	copy(buyResult, buyOrders)
@@ -36,9 +36,9 @@ func Test_AddOrders(t *testing.T) {
 		if r == 0 {
 			return !buyResult[i].CreatedAt.After(buyResult[j].CreatedAt)
 		} else if r == -1 {
-			return true
+			return false
 		}
-		return false
+		return true
 	})
 	type args struct {
 		orders []*model.Order
@@ -50,19 +50,19 @@ func Test_AddOrders(t *testing.T) {
 		args args
 	}{
 		{
+			name: "加入多筆掛賣訂單 確認order book 中掛賣的順序是對的",
+			args: args{
+				side:   model.Sell,
+				orders: sellOrders,
+				result: sellResult,
+			},
+		},
+		{
 			name: "加入多筆掛買訂單 確認order book 中掛買的順序是對的",
 			args: args{
 				side:   model.Buy,
 				orders: buyOrders,
 				result: buyResult,
-			},
-		},
-		{
-			name: "加入多筆掛買訂單 確認order book 中掛賣的順序是對的",
-			args: args{
-				side:   model.Sell,
-				orders: sellOrders,
-				result: sellResult,
 			},
 		},
 	}

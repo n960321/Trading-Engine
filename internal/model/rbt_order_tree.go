@@ -9,6 +9,7 @@ import (
 
 type PriceTree struct {
 	tree *rbt.Tree
+	side OrderSide
 }
 
 func NewPriceTree(side OrderSide) *PriceTree {
@@ -21,6 +22,7 @@ func NewPriceTree(side OrderSide) *PriceTree {
 	}
 	return &PriceTree{
 		tree: tree,
+		side: side,
 	}
 }
 
@@ -33,10 +35,10 @@ func BuySideComparator(a, b interface{}) int {
 	}
 
 	if aPrice.GreaterThan(bPrice) {
-		return 1
+		return -1
 	}
 
-	return -1
+	return 1
 }
 
 func SellSideComparator(a, b interface{}) int {
@@ -48,10 +50,10 @@ func SellSideComparator(a, b interface{}) int {
 	}
 
 	if aPrice.GreaterThan(bPrice) {
-		return -1
+		return 1
 	}
 
-	return 1
+	return -1
 }
 
 func (p *PriceTree) Size() int64 {
@@ -89,6 +91,27 @@ func (p *PriceTree) RemoveOrder(order *Order) {
 	}
 }
 
+func (p *PriceTree) GetOrdersBetweenPirceWithAmount(price, laveAmount decimal.Decimal) []*Order {
+	orders := make([]*Order, 0)
+	it := p.tree.Iterator()
+	for it.Next() {
+		curPrice := it.Key().(decimal.Decimal)
+		if p.side == Buy && curPrice.LessThan(price) || (p.side == Sell && curPrice.GreaterThan(price)) {
+			break
+		}
+
+		timeTree := it.Value().(*TimeTree)
+		var subOrders []*Order
+		subOrders, laveAmount = timeTree.GetOrdersWithAmount(laveAmount)
+		orders = append(orders, subOrders...)
+		if laveAmount.LessThanOrEqual(decimal.Zero) {
+			break
+		}
+	}
+
+	return orders
+}
+
 func (p *PriceTree) GetAllOrders() []*Order {
 	orders := make([]*Order, 0, p.Size())
 	it := p.tree.Iterator()
@@ -100,12 +123,14 @@ func (p *PriceTree) GetAllOrders() []*Order {
 }
 
 type TimeTree struct {
-	tree *rbt.Tree
+	tree       *rbt.Tree
+	laveAmount decimal.Decimal // 剩餘數量
 }
 
 func NewTimeTree() *TimeTree {
 	return &TimeTree{
-		tree: rbt.NewWith(TimeComparator),
+		tree:       rbt.NewWith(TimeComparator),
+		laveAmount: decimal.Zero,
 	}
 }
 
@@ -115,10 +140,34 @@ func TimeComparator(a, b interface{}) int {
 	return aTime.Compare(bTime)
 }
 
+func (t *TimeTree) AddOrder(order *Order) {
+	t.tree.Put(order.CreatedAt, order)
+	t.laveAmount = t.laveAmount.Add(order.GetLaveAmount())
+}
+
+func (t *TimeTree) RemoveOrder(order *Order) {
+	t.tree.Remove(order.CreatedAt)
+	t.laveAmount = t.laveAmount.Sub(order.GetLaveAmount())
+}
+
 func (t *TimeTree) GetAllOrders(orders *[]*Order) {
 	it := t.tree.Iterator()
 	for it.Next() {
 		order := it.Value().(*Order)
 		*orders = append(*orders, order)
 	}
+}
+
+func (t *TimeTree) GetOrdersWithAmount(laveAmount decimal.Decimal) ([]*Order, decimal.Decimal) {
+	orders := make([]*Order, 0)
+	it := t.tree.Iterator()
+	for it.Next() {
+		order := it.Value().(*Order)
+		laveAmount = laveAmount.Sub(order.GetLaveAmount())
+		orders = append(orders, order)
+		if !laveAmount.GreaterThan(decimal.Zero) {
+			break
+		}
+	}
+	return orders, laveAmount
 }
