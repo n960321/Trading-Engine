@@ -1,12 +1,44 @@
-
 # Trading-Engine
 設一個交易撮和引擎來練習System design。
 
-## 如何撮合
 
-限價單(Limit): 當掛單進來時會優先查找低於限價的最優價格，如果有，則依照時間優先來進行數量撮合，如果沒有則放進掛單簿。
-### 流程圖
-#### 掛買單流程圖
+<!-- vscode-markdown-toc -->
+* 1. [ FunctionalRequirements](#FunctionalRequirements)
+* 2. [Non-functional Requirements](#Non-functionalRequirements)
+* 3. [流程圖](#)
+	* 3.1. [掛買單流程圖](#-1)
+	* 3.2. [掛賣單流程圖](#-1)
+* 4. [如何設計掛單簿](#-1)
+* 5. [REF](#REF)
+
+<!-- vscode-markdown-toc-config
+	numbering=true
+	autoSave=true
+	/vscode-markdown-toc-config -->
+<!-- /vscode-markdown-toc -->
+
+
+
+
+##  1. <a name='FunctionalRequirements'></a> FunctionalRequirements
+
+1. 新增限價單、市價單。
+2. 刪除掛單。
+3. 交易搓合的規則如下:
+    限價單(Limit): 當掛單進來時會優先查找低於限價的最優價格，如果有，則依照時間優先來進行數量撮合，如果沒有則放進掛單簿。
+    市價單(Market): 不指定價格，會依照當時最優價格及時間進行撮合。
+4. 能夠向外通知以下事件:
+    - 訂單已加入訂單簿
+    - 訂單搓合完成
+    - 訂單已取消
+
+##  2. <a name='Non-functionalRequirements'></a>Non-functional Requirements
+
+1. 高可用 - 即便有發生錯誤也是可以正常執行下去
+
+
+##  3. <a name=''></a>流程圖
+###  3.1. <a name='-1'></a>掛買單流程圖
 ```mermaid
 flowchart TD
     Limit --> buy(從掛賣單中的最優價格開始取訂單\nAmount總數會剛好等於taker Amount 或超過一點)
@@ -19,7 +51,7 @@ flowchart TD
     buyAmount -- No --> End
     addToBuy --> End
 ```
-#### 掛賣單流程圖
+###  3.2. <a name='-1'></a>掛賣單流程圖
 ```mermaid
 flowchart TD
     Limit --> sell(從掛買單中的最優價格開始取訂單\nAmount總數會剛好等於taker Amount 或超過一點)
@@ -33,7 +65,7 @@ flowchart TD
     addToSell --> End    
 ```
 
-## 如何設計掛單簿
+##  4. <a name='-1'></a>如何設計掛單簿
 
 沒有撮合成功的訂單或者還有數量未撮合完的訂單會放進一個集合中，等待之後的訂單嘗試撮合，我們把這個集合稱為掛單簿(Order Book)。
 在掛單簿中會有掛買與掛賣的集合，在單一撮合引擎下我們期望在任何操作速度越快越好，才有辦法負荷大量的訂單近來，因此我們需要一個資料結構來滿足以下需求。
@@ -59,7 +91,7 @@ flowchart TD
 根據撮合規定，會有需要價格順序，再來是時間順序，所以我會有一個 `PriceTree` 以紅黑樹來實現，再來每個節點裡都會在放一個 `TimeTree` 也是以紅黑樹來實現，用來排序時間且裡面會放各個Order。
 
 
-## REF
+##  5. <a name='REF'></a>REF
 
 [AVL Tree](https://zh.wikipedia.org/zh-tw/AVL%E6%A0%91)
 [Red Black Tree](https://zh.wikipedia.org/zh-tw/%E7%BA%A2%E9%BB%91%E6%A0%91)
