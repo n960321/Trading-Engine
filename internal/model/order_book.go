@@ -42,6 +42,16 @@ func (b *OrderBook) AddOrder(order *Order) {
 	}
 }
 
+func (b *OrderBook) CancelOrder(order *Order) {
+	switch order.Side {
+	case OrderSideBuy:
+		b.buyQueue.RemoveOrder(order)
+	case OrderSideSell:
+		b.sellQueue.RemoveOrder(order)
+	}
+	
+}
+
 // 取得所有掛買單
 func (b *OrderBook) GetAllBuyOrders() []*Order {
 	return b.buyQueue.GetAllOrders()
@@ -106,7 +116,7 @@ func (b *OrderBook) Match(order *Order) *MatchResult {
 	if !order.GetLaveAmount().Equal(decimal.Zero) {
 		b.AddOrder(order)
 	}
-	
+
 	// 從訂單簿中移除已經搓合完成的makers
 	for _, maker := range makers {
 		switch maker.Side {

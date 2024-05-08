@@ -83,9 +83,9 @@ func (p *PriceTree) AddOrder(order *Order) {
 func (p *PriceTree) RemoveOrder(order *Order) {
 	if tree, ok := p.tree.Get(order.Price); ok {
 		timeTree := tree.(*TimeTree)
-		timeTree.tree.Remove(order.CreatedAt)
+		timeTree.RemoveOrder(order)
 
-		if timeTree.tree.Empty() {
+		if timeTree.GetLaveAmount().Equal(decimal.Zero) {
 			p.tree.Remove(order.Price)
 		}
 	}
@@ -170,4 +170,8 @@ func (t *TimeTree) GetOrdersWithAmount(laveAmount decimal.Decimal) ([]*Order, de
 		}
 	}
 	return orders, laveAmount
+}
+
+func (t *TimeTree) GetLaveAmount() decimal.Decimal {
+	return t.laveAmount
 }

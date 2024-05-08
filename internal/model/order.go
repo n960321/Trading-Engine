@@ -8,7 +8,6 @@ import (
 
 type Order struct {
 	ID          uint64
-	Action      OrderAction
 	Side        OrderSide
 	Amount      decimal.Decimal // 所需數量
 	Price       decimal.Decimal // 金額
