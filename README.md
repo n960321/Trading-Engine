@@ -3,11 +3,12 @@
 
 
 <!-- vscode-markdown-toc -->
-* 1. [ FunctionalRequirements](#FunctionalRequirements)
+* 1. [ Functional Requirements](#FunctionalRequirements)
 * 2. [Non-functional Requirements](#Non-functionalRequirements)
 * 3. [流程圖](#)
-	* 3.1. [掛買單流程圖](#-1)
-	* 3.2. [掛賣單流程圖](#-1)
+	* 3.1. [限價掛買單流程圖](#-1)
+	* 3.2. [限價掛賣單流程圖](#-1)
+	* 3.3. [市價單流程圖](#-1)
 * 4. [如何設計掛單簿](#-1)
 * 5. [REF](#REF)
 
@@ -20,7 +21,7 @@
 
 
 
-##  1. <a name='FunctionalRequirements'></a> FunctionalRequirements
+##  1. <a name='FunctionalRequirements'></a> Functional Requirements
 
 1. 新增限價單、市價單。
 2. 刪除掛單。
@@ -38,32 +39,45 @@
 
 
 ##  3. <a name=''></a>流程圖
-###  3.1. <a name='-1'></a>掛買單流程圖
+###  3.1. <a name='-1'></a>限價掛買單流程圖
 ```mermaid
 flowchart TD
     Limit --> buy(從掛賣單中的最優價格開始取訂單\nAmount總數會剛好等於taker Amount 或超過一點)
     buy --> check_buy{列表長度是否為零}
     check_buy -- Yes --> addToBuy(加到掛單隊列)
     check_buy -- No --> match(搓合成功 產生Match Result)
-    match --> delete_maker(刪除makers在掛賣列表的位置)
+    match --> delete_maker(刪除finish makers在掛賣列表的位置)
     delete_maker --> buyAmount{掛買剩餘Amount大於0}
     buyAmount -- Yes --> addToBuy
     buyAmount -- No --> End
     addToBuy --> End
 ```
-###  3.2. <a name='-1'></a>掛賣單流程圖
+###  3.2. <a name='-1'></a>限價掛賣單流程圖
 ```mermaid
 flowchart TD
     Limit --> sell(從掛買單中的最優價格開始取訂單\nAmount總數會剛好等於taker Amount 或超過一點)
     sell --> check_sell{列表長度是否為零}
     check_sell -- Yes --> addToSell(加到賣單隊列)
     check_sell -- No --> match(產生Match Result)
-    match --> delete_maker(刪除makers在掛買列表的位置)
+    match --> delete_maker(刪除finish makers在掛買列表的位置)
     delete_maker --> sellAmount{掛賣剩餘Amount大於0}
     sellAmount -- Yes --> addToSell
     sellAmount -- No --> End
     addToSell --> End    
 ```
+
+###  3.3. <a name='-1'></a>市價單流程圖
+
+```mermaid
+flowchart TD
+    Market --> sell(從掛單中的最優價格開始取訂單\nAmount總數會剛好等於taker Amount 或超過一點)
+    sell --> check_sell{列表長度是否為零}
+    check_sell -- Yes --> End
+    check_sell -- No --> match(產生Match Result)
+    match --> delete_maker(刪除finish makers在掛單列表的位置)
+    delete_maker --> End 
+```
+
 
 ##  4. <a name='-1'></a>如何設計掛單簿
 

@@ -112,6 +112,22 @@ func (p *PriceTree) GetOrdersBetweenPirceWithAmount(price, laveAmount decimal.De
 	return orders
 }
 
+func (p *PriceTree) GetOrdersWithAmount(laveAmount decimal.Decimal) []*Order {
+	orders := make([]*Order, 0)
+	it := p.tree.Iterator()
+	for it.Next() {
+		timeTree := it.Value().(*TimeTree)
+		var subOrders []*Order
+		subOrders, laveAmount = timeTree.GetOrdersWithAmount(laveAmount)
+		orders = append(orders, subOrders...)
+		if laveAmount.LessThanOrEqual(decimal.Zero) {
+			break
+		}
+	}
+
+	return orders
+}
+
 func (p *PriceTree) GetAllOrders() []*Order {
 	orders := make([]*Order, 0, p.Size())
 	it := p.tree.Iterator()

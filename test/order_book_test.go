@@ -13,8 +13,8 @@ import (
 // 加入多筆訂單 確認order book 中的順序是對的
 func Test_AddOrders(t *testing.T) {
 
-	sellOrders := createOrder(RandomInt(10000, 10000000), model.OrderSideSell, 1, 100, 10, 200)
-	buyOrders := createOrder(RandomInt(10000, 10000000), model.OrderSideBuy, 1, 100, 10, 200)
+	sellOrders := createOrder(RandomInt(10000, 10000000), model.OrderSideSell, model.OrderTypeLimit, 1, 100, 10, 200)
+	buyOrders := createOrder(RandomInt(10000, 10000000), model.OrderSideBuy, model.OrderTypeLimit, 1, 100, 10, 200)
 
 	sellResult := make([]*model.Order, len(sellOrders))
 	copy(sellResult, sellOrders)
@@ -99,9 +99,8 @@ func Test_AddOrders(t *testing.T) {
 
 // 加入多筆訂單後，取消某筆訂單，確認是否還在OrderBook中
 func Test_CancelOrder(t *testing.T) {
-	orders := createOrder(RandomInt(100, 1000), model.OrderSideUnknow, 1, 100, 1, 100)
+	orders := createOrder(RandomInt(100, 1000), model.OrderSideUnknow, model.OrderTypeLimit, 1, 100, 1, 100)
 	cancelOrder := orders[RandomInt(0, int64(len(orders)))]
-	
 
 	type args struct {
 		orders      []*model.Order
@@ -114,7 +113,7 @@ func Test_CancelOrder(t *testing.T) {
 		{
 			name: "加入多筆訂單，隨機一筆然後刪除",
 			args: args{
-				orders: orders,
+				orders:      orders,
 				cancelOrder: cancelOrder,
 			},
 		},
@@ -130,9 +129,9 @@ func Test_CancelOrder(t *testing.T) {
 			orderBook.CancelOrder(tt.args.cancelOrder)
 
 			curOrders := orderBook.GetAllBuyOrders()
-			curOrders = append(curOrders,orderBook.GetAllSellOrders()...)
+			curOrders = append(curOrders, orderBook.GetAllSellOrders()...)
 
-			for _,order := range curOrders {
+			for _, order := range curOrders {
 				if order.ID == tt.args.cancelOrder.ID {
 					t.Errorf("The order has not been canceled.")
 					break
@@ -144,7 +143,7 @@ func Test_CancelOrder(t *testing.T) {
 }
 
 func Test_MatchOrders(t *testing.T) {
-	orders := createOrder(RandomInt(1000000, 1000000), model.OrderSideUnknow, 1, 100, 1, 100)
+	orders := createOrder(RandomInt(1000000, 1000000), model.OrderSideUnknow, model.OrderTypeUnknow, 1, 100, 1, 100)
 	type args struct {
 		orders []*model.Order
 	}
@@ -173,16 +172,23 @@ func Test_MatchOrders(t *testing.T) {
 
 // TODO : 需要補一個測試是驗證撮合的正確性！
 
-func createOrder(q int64, side model.OrderSide, priceMin, priceMax, amountMin, amountMax int64) []*model.Order {
+func createOrder(q int64, side model.OrderSide, orderType model.OrderType, priceMin, priceMax, amountMin, amountMax int64) []*model.Order {
 	orders := make([]*model.Order, 0, q)
 	for i := int64(0); i < q; i++ {
 		curSide := side
 		if curSide == model.OrderSideUnknow {
 			curSide = model.OrderSide(RandomInt(1, 2))
 		}
+		curType := orderType
+
+		if curType == model.OrderTypeUnknow {
+			curType = model.OrderType(RandomInt(1, 2))
+		}
+
 		orders = append(orders, &model.Order{
 			ID:        uint64(i),
 			Side:      curSide,
+			Type:      curType,
 			Amount:    decimal.NewFromInt(RandomInt(amountMin, amountMax)),
 			Price:     decimal.NewFromInt(RandomInt(priceMin, priceMax)),
 			CreatedAt: time.Now(),

@@ -9,6 +9,7 @@ import (
 type Order struct {
 	ID          uint64
 	Side        OrderSide
+	Type        OrderType
 	Amount      decimal.Decimal // 所需數量
 	Price       decimal.Decimal // 金額
 	MatchAmount decimal.Decimal // 已成交數量
