@@ -25,6 +25,6 @@ var (
 )
 
 func init() {
-	rootCmd.PersistentFlags().StringVarP(&configFile, "config", "c", ".configs/config.yaml", "The config file.")
+	rootCmd.PersistentFlags().StringVarP(&configFile, "config", "c", "configs/config.yaml", "The config file.")
 	rootCmd.PersistentFlags().BoolVarP(&local, "local", "l", false, "Run on local (true or false)")
 }

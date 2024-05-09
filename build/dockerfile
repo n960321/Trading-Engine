@@ -1,0 +1,21 @@
+FROM golang:1.22-alpine as builder
+RUN apk add --no-cache --update alpine-sdk
+
+WORKDIR /Trading-Engine
+COPY . .
+
+RUN go mod download
+RUN make build
+
+
+FROM alpine:3.19
+
+WORKDIR /app/
+
+COPY --from=builder /Trading-Engine/bin .
+EXPOSE 8080
+
+ENV GIN_MODE release
+
+CMD ["/app/trading-engine","server"]
+
