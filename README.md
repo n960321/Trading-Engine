@@ -10,7 +10,8 @@
 	* 3.2. [限價掛賣單流程圖](#-1)
 	* 3.3. [市價單流程圖](#-1)
 * 4. [如何設計掛單簿](#-1)
-* 5. [REF](#REF)
+* 5. [技術選型](#-1)
+* 6. [REF](#REF)
 
 <!-- vscode-markdown-toc-config
 	numbering=true
@@ -104,8 +105,24 @@ flowchart TD
 
 根據撮合規定，會有需要價格順序，再來是時間順序，所以我會有一個 `PriceTree` 以紅黑樹來實現，再來每個節點裡都會在放一個 `TimeTree` 也是以紅黑樹來實現，用來排序時間且裡面會放各個Order。
 
+##  5. <a name='-1'></a>技術選型
+此service 當前為了方便送request，故選擇開 http 的接口去收 http request，之後如果轉為內部服務，則會考慮開grpc或者從mq收資料去搓合。
 
-##  5. <a name='REF'></a>REF
+- **Web Framework** 
+    `gin`: 由於fiber的案例，原本想找最快的來使用，但還是乖乖選擇最多人使用的老牌框架。Int("StatusCode", statusCode).Str("ReqUri", reqUri).Str("Method", reqMethod).
+    ~~`fiber`: 在此選了 fiber 這個框架做使用，原因是在當fiber開啟 prefork 模式時，處理request的效率是最高的，根據[這裡](https://www.techempower.com/benchmarks/#section=data-r22&hw=ph&test=composite&l=zijocf-cn3)。觀察他在Github上的星星樹與還有在維護的部分，選擇`fiber`作為我的web Framework。~~ **發現他其實是開多個process去listen同一個port，但我的訂單簿為了速度快，是放在本地的記憶體，不適合用這個**
+
+
+## API
+
+- TODO
+
+
+
+##  6. <a name='REF'></a>REF
 
 [AVL Tree](https://zh.wikipedia.org/zh-tw/AVL%E6%A0%91)
+
 [Red Black Tree](https://zh.wikipedia.org/zh-tw/%E7%BA%A2%E9%BB%91%E6%A0%91)
+
+[gofiber/fiber](https://github.com/gofiber/fiber)
