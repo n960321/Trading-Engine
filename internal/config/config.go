@@ -2,13 +2,15 @@ package config
 
 import (
 	"Trading-Engine/internal/server"
+	"Trading-Engine/internal/storage/mysql"
 
 	"github.com/rs/zerolog/log"
 	"github.com/spf13/viper"
 )
 
 type Config struct {
-	Http *server.Config `mapstructure:"http"`
+	Http  server.Config `mapstructure:"http"`
+	Mysql mysql.Config  `mapstructure:"mysql"`
 }
 
 func GetConfig(configFile string) *Config {

@@ -24,19 +24,19 @@
 
 ##  1. <a name='FunctionalRequirements'></a> Functional Requirements
 
-1. 新增限價單、市價單。
-2. 刪除掛單。
-3. 交易搓合的規則如下:
+1. [X] 新增限價單、市價單。
+2. [X] 刪除掛單。
+3. [X] 交易搓合的規則如下:
     限價單(Limit): 當掛單進來時會優先查找低於限價的最優價格，如果有，則依照時間優先來進行數量撮合，如果沒有則放進掛單簿。
     市價單(Market): 不指定價格，會依照當時最優價格及時間進行撮合。
-4. 能夠向外通知以下事件:
+4. [ ] 能夠向外通知以下事件:
     - 訂單已加入訂單簿
     - 訂單搓合完成
     - 訂單已取消
 
 ##  2. <a name='Non-functionalRequirements'></a>Non-functional Requirements
 
-1. 高可用 - 即便有發生錯誤也是可以正常執行下去
+1. [ ] 高可用 - 即便有發生錯誤也是可以正常執行下去。
 
 
 ##  3. <a name=''></a>流程圖
@@ -106,17 +106,15 @@ flowchart TD
 根據撮合規定，會有需要價格順序，再來是時間順序，所以我會有一個 `PriceTree` 以紅黑樹來實現，再來每個節點裡都會在放一個 `TimeTree` 也是以紅黑樹來實現，用來排序時間且裡面會放各個Order。
 
 ##  5. <a name='-1'></a>技術選型
-此service 當前為了方便送request，故選擇開 http 的接口去收 http request，之後如果轉為內部服務，則會考慮開grpc或者從mq收資料去搓合。
 
 - **Web Framework** 
-    `gin`: 由於fiber的案例，原本想找最快的來使用，但還是乖乖選擇最多人使用的老牌框架。Int("StatusCode", statusCode).Str("ReqUri", reqUri).Str("Method", reqMethod).
-    ~~`fiber`: 在此選了 fiber 這個框架做使用，原因是在當fiber開啟 prefork 模式時，處理request的效率是最高的，根據[這裡](https://www.techempower.com/benchmarks/#section=data-r22&hw=ph&test=composite&l=zijocf-cn3)。觀察他在Github上的星星樹與還有在維護的部分，選擇`fiber`作為我的web Framework。~~ **發現他其實是開多個process去listen同一個port，但我的訂單簿為了速度快，是放在本地的記憶體，不適合用這個**
+    此service 當前為了方便送request，故選擇開 http 的接口去收 http request，之後如果轉為內部服務，則會考慮開grpc或者從mq收資料去搓合。
 
+    - `gin`: 由於fiber的案例，原本想找最快的來使用，但還是乖乖選擇最多人使用的老牌框架。
 
-## API
-
-- TODO
-
+    - ~~`fiber`: 在此選了 fiber 這個框架做使用，原因是在當fiber開啟 prefork 模式時，處理request的效率是最高的，根據[這裡](https://www.techempower.com/benchmarks/#section=data-r22&hw=ph&test=composite&l=zijocf-cn3)。觀察他在Github上的星星樹與還有在維護的部分，選擇`fiber`作為我的web Framework。~~ **發現他其實是開多個process去listen同一個port，但我的訂單簿為了速度快，是放在本地的記憶體，不適合用這個**
+- **關連式資料庫**
+    - `Mysql` 為了測試上好紀錄資料，需要一個關連式資料庫來存取，選最常用的。
 
 
 ##  6. <a name='REF'></a>REF

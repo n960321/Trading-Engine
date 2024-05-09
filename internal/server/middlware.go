@@ -7,16 +7,16 @@ import (
 	"github.com/rs/zerolog/log"
 )
 
-func SetLogger() gin.HandlerFunc {
+
+func timeMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		startTime := time.Now()
 		c.Next()
-
 		endTime := time.Now()
 		latencyTime := endTime.Sub(startTime)
 		reqMethod := c.Request.Method
 		reqUri := c.Request.RequestURI
 		statusCode := c.Writer.Status()
-		log.Info().Int("StatusCode", statusCode).Str("ReqUri", reqUri).Str("Method", reqMethod).Dur("latencyTime", latencyTime).Msg(" ")
+		log.Info().Int("StatusCode", statusCode).Str("ReqUri", reqUri).Str("Method", reqMethod).Dur("latencyTime", latencyTime).Msg("Request End")
 	}
 }

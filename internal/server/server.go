@@ -19,11 +19,10 @@ type Config struct {
 	Prefork bool   `mapstructure:"prefork"`
 }
 
-func NewServer(cfg *Config, h *handler.Handler) *Server {
+func NewServer(cfg Config, h *handler.Handler) *Server {
 	g := gin.New()
 	g.Use(gin.Recovery())
-	g.Use(SetLogger())
-	
+	g.Use(timeMiddleware())
 
 	api := g.Group("/api")
 	v1 := api.Group("/v1")
