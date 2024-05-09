@@ -142,35 +142,18 @@ func Test_CancelOrder(t *testing.T) {
 
 }
 
-func Test_MatchOrders(t *testing.T) {
-	orders := createOrder(RandomInt(1000000, 1000000), model.OrderSideUnknow, model.OrderTypeUnknow, 1, 100, 1, 100)
-	type args struct {
-		orders []*model.Order
-	}
-	tests := []struct {
-		name string
-		args args
-	}{
-		{
-			name: "加入一百萬筆訂單，嘗試撮合看可以幾秒內完成",
-			args: args{
-				orders: orders,
-			},
-		},
-	}
-
-	for _, tt := range tests {
-		t.Logf("orders len: %d", len(tt.args.orders))
-		t.Run(tt.name, func(t *testing.T) {
-			orderBook := model.NewOrderBook()
-			for _, order := range tt.args.orders {
-				orderBook.Match(order)
-			}
-		})
+// 搓合效能測試
+func BenchmarkMatchOrders(b *testing.B) {
+	orders := createOrder(int64(b.N), model.OrderSideUnknow, model.OrderTypeUnknow, 1, 100, 1, 100)
+	orderBook := model.NewOrderBook()
+	b.Logf("orders len:%d", len(orders))
+	for i := 0; i < b.N; i++ {
+		orderBook.Match(orders[i])
 	}
 }
 
-// TODO : 需要補一個測試是驗證撮合的正確性！
+// TODO : 需要補一個測試是驗證撮合的正確性 -> 只驗搓合的正確性，訂單簿的順序不在此測試範圍
+// func
 
 func createOrder(q int64, side model.OrderSide, orderType model.OrderType, priceMin, priceMax, amountMin, amountMax int64) []*model.Order {
 	orders := make([]*model.Order, 0, q)

@@ -1,4 +1,4 @@
-.PHONY: run build docker-build docker-run db-run db-remove docker-remove test
+.PHONY: run build docker-build docker-run db-run db-remove docker-remove test benchmark
 cur := $(shell pwd)
 
 db-container-id := $(shell docker ps -a| grep mysql | awk '{print $$1}')
@@ -6,7 +6,10 @@ trading-engine-container-id := $(shell docker ps -a | grep trading-engine | awk 
 
 
 test: 
-	@go clean -testcache & go test -v ./test...
+	@go clean -testcache & go test -v ./test/order_book_test.go
+
+benchmark:
+	@go test -v -bench=. -run=none ./test/...
 
 run:
 	@go run main.go server -l true -c configs/dev.yaml

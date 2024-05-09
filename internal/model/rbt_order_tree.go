@@ -76,8 +76,7 @@ func (p *PriceTree) AddOrder(order *Order) {
 		timeTree = NewTimeTree()
 		p.tree.Put(order.Price, timeTree)
 	}
-
-	timeTree.tree.Put(order.CreatedAt, order)
+	timeTree.AddOrder(order)
 }
 
 func (p *PriceTree) RemoveOrder(order *Order) {
@@ -154,6 +153,15 @@ func TimeComparator(a, b interface{}) int {
 	aTime := a.(time.Time)
 	bTime := b.(time.Time)
 	return aTime.Compare(bTime)
+}
+
+func IDComparator(a, b interface{}) int {
+	aID := a.(uint64)
+	bID := b.(uint64)
+	if aID <= bID {
+		return 1
+	}
+	return -1
 }
 
 func (t *TimeTree) AddOrder(order *Order) {
