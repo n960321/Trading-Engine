@@ -1,0 +1,156 @@
+{
+	"info": {
+		"_postman_id": "57c624e0-bad5-42c4-adaf-bb61019396bc",
+		"name": "Trading-Engine",
+		"description": "關於搓合引擎的API文件",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "6924074"
+	},
+	"item": [
+		{
+			"name": "create order",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"type\": 1,\n    \"side\": 2,\n    \"price\": 20,\n    \"amount\": 0.5\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{HOST}}{{API_VERSION}}/order",
+					"host": [
+						"{{HOST}}{{API_VERSION}}"
+					],
+					"path": [
+						"order"
+					]
+				},
+				"description": "新增訂單且放進掛單簿搓合。\n\n| 欄位 | 型態 | 允許不填 | 備註 |\n| --- | --- | --- | --- |\n| side | int | no | 1: 賣單 , 2: 買單 |\n| type | int | no | 1: 限價單, 2: 市價單 |\n| price | float64 | yes | 價格，當為市價單此欄位無用 |\n| amount | float64 | no | 數量 |\n\n# Response\n\n| 欄位 | 型態 | 備註 |\n| --- | --- | --- |\n| id | int | 唯一值 |\n| side | int | 1: 賣單 , 2: 買單 |\n| type | int | 1: 限價單, 2: 市價單 |\n| price | float64 | 價格 |\n| amount | float64 | 數量 |\n| match_amount | float64 | 已成交數量 |\n| created_at | datetime | 建立的日期時間 |\n| updated_at | datetime | 更新的日期時間 |\n| deleted_at | object | 刪除的日期時間且顯示有無值 |\n\n## deleted_at object\n\n| 欄位 | 型態 | 備註 |\n| --- | --- | --- |\n| Time | datetime | 刪除的日期時間 |\n| Valid | bool | 值有效 |"
+			},
+			"response": []
+		},
+		{
+			"name": "get order",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{HOST}}{{API_VERSION}}/order/:order_id",
+					"host": [
+						"{{HOST}}{{API_VERSION}}"
+					],
+					"path": [
+						"order",
+						":order_id"
+					],
+					"variable": [
+						{
+							"key": "order_id",
+							"value": "",
+							"description": "訂單唯一值",
+							"uuid": "3b7ca446-6870-480f-b2a8-5b0faec461fa"
+						}
+					]
+				},
+				"description": "取得掛單\n\n# Response\n\n| 欄位 | 型態 | 備註 |\n| --- | --- | --- |\n| id | int | 唯一值 |\n| side | int | 1: 賣單 , 2: 買單 |\n| type | int | 1: 限價單, 2: 市價單 |\n| price | float64 | 價格 |\n| amount | float64 | 數量 |\n| match_amount | float64 | 已成交數量 |\n| created_at | datetime | 建立的日期時間 |\n| updated_at | datetime | 更新的日期時間 |\n| deleted_at | object | 刪除的日期時間且顯示有無值 |\n\n## deleted_at object\n\n| 欄位 | 型態 | 備註 |\n| --- | --- | --- |\n| Time | datetime | 刪除的日期時間 |\n| Valid | bool | 值有效 |"
+			},
+			"response": []
+		},
+		{
+			"name": "delete order",
+			"request": {
+				"method": "DELETE",
+				"header": [],
+				"url": {
+					"raw": "{{HOST}}{{API_VERSION}}/order/:order_id",
+					"host": [
+						"{{HOST}}{{API_VERSION}}"
+					],
+					"path": [
+						"order",
+						":order_id"
+					],
+					"variable": [
+						{
+							"key": "order_id",
+							"value": "",
+							"description": "訂單唯一值",
+							"uuid": "38e5c42d-5e24-48c0-99ef-135227d056ef"
+						}
+					]
+				},
+				"description": "移除掛單"
+			},
+			"response": []
+		},
+		{
+			"name": "list trades",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{HOST}}{{API_VERSION}}/trades?maker_id=&taker_id=",
+					"host": [
+						"{{HOST}}{{API_VERSION}}"
+					],
+					"path": [
+						"trades"
+					],
+					"query": [
+						{
+							"key": "maker_id",
+							"value": "",
+							"description": "maker訂單的唯一值"
+						},
+						{
+							"key": "taker_id",
+							"value": "",
+							"description": "taker訂單的唯一值"
+						}
+					]
+				},
+				"description": "取得多筆交易\n\n# Response"
+			},
+			"response": []
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "HOST",
+			"value": "http://127.0.0.1:8080",
+			"type": "string"
+		},
+		{
+			"key": "API_VERSION",
+			"value": "/api/v1",
+			"type": "string"
+		}
+	]
+}
