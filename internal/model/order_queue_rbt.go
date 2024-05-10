@@ -7,12 +7,14 @@ import (
 	"github.com/shopspring/decimal"
 )
 
+var QueueTypePriceTree = QueueType("PriceTree")
+
 type PriceTree struct {
 	tree *rbt.Tree
 	side OrderSide
 }
 
-func NewPriceTree(side OrderSide) *PriceTree {
+func NewRBTPriceTree(side OrderSide) OrderQueueior {
 	var tree *rbt.Tree
 	switch side {
 	case OrderSideBuy:

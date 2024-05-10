@@ -33,11 +33,16 @@ type OrderQueueior interface {
 	GetOrdersWithAmount(laveAmount decimal.Decimal) []*Order
 }
 
-func NewOrderBook() *OrderBook {
+var queueTypeMap = map[QueueType](func(side OrderSide) OrderQueueior){
+	QueueTypeArrayList: NewQueueByList,
+	QueueTypePriceTree: NewRBTPriceTree,
+}
+
+func NewOrderBook(queueType QueueType) *OrderBook {
 	return &OrderBook{
 		Mux:           sync.Mutex{},
-		buyQueue:      NewPriceTree(OrderSideBuy),
-		sellQueue:     NewPriceTree(OrderSideSell),
+		buyQueue:      queueTypeMap[queueType](OrderSideBuy),
+		sellQueue:     queueTypeMap[queueType](OrderSideSell),
 		matchStrategy: NewMatcher(),
 	}
 }

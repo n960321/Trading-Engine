@@ -17,3 +17,5 @@ const (
 	OrderSideBuy                     // 買單
 	OrderSideSell                    // 賣單
 )
+
+type QueueType string

@@ -19,7 +19,7 @@ type Handler struct {
 
 func NewHandler(db *mysql.Database) *Handler {
 	h := new(Handler)
-	h.orderBook = model.NewOrderBook()
+	h.orderBook = model.NewOrderBook(model.QueueTypePriceTree)
 	h.db = db
 	return h
 }
@@ -39,6 +39,8 @@ func (h *Handler) CreateOrder(c *gin.Context) {
 		c.Error(err)
 		return
 	}
+
+	// 需要先檢查訂單簿裡有沒有 避免資料被覆蓋 或者重複 - 可以放進外部快取
 	order := &model.Order{
 		Price:  *reqBody.Price,
 		Amount: *reqBody.Amount,
