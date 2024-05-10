@@ -4,6 +4,7 @@ import (
 	"Trading-Engine/internal/model"
 	"os"
 	"runtime/pprof"
+	"sync"
 	"testing"
 )
 
@@ -14,9 +15,14 @@ func Test_Matchpprof(t *testing.T) {
 	defer f.Close()
 	pprof.StartCPUProfile(f)
 	defer pprof.StopCPUProfile()
-
-	orderBook := model.NewOrderBook()
+	var wg sync.WaitGroup
+	wg.Add(1000000)
+	orderBook := model.NewOrderBook(model.QueueTypePriceTree)
 	for i := 0; i < len(orders); i++ {
-		orderBook.Match(orders[i])
+		go func() {
+			defer wg.Done()
+			orderBook.Match(&orders[i])
+		}()
 	}
+	wg.Wait()
 }

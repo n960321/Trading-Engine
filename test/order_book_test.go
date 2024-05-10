@@ -13,82 +13,106 @@ import (
 // 加入多筆訂單 確認order book 中的順序是對的
 func Test_AddOrders(t *testing.T) {
 
-	sellOrders := createOrder(RandomInt(10000, 10000000), model.OrderSideSell, model.OrderTypeLimit, 1, 100, 10, 200)
-	buyOrders := createOrder(RandomInt(10000, 10000000), model.OrderSideBuy, model.OrderTypeLimit, 1, 100, 10, 200)
+	getTestCase := func(min, max int64) (sellOrders, buyOrders, sellResult, buyResult []model.Order) {
+		sellOrders = createOrder(RandomInt(min, max), model.OrderSideSell, model.OrderTypeLimit, 1, 100, 10, 200)
+		buyOrders = createOrder(RandomInt(min, max), model.OrderSideBuy, model.OrderTypeLimit, 1, 100, 10, 200)
 
-	sellResult := make([]*model.Order, len(sellOrders))
-	copy(sellResult, sellOrders)
+		sellResult = make([]model.Order, len(sellOrders))
+		copy(sellResult, sellOrders)
 
-	sort.Slice(sellResult, func(i, j int) bool {
-		r := sellResult[i].Price.Compare(sellResult[j].Price)
-		if r == 0 {
-			return !sellResult[i].CreatedAt.After(sellResult[j].CreatedAt)
-		} else if r == -1 {
-			return true
-		}
-		return false
-	})
-	buyResult := make([]*model.Order, len(buyOrders))
-	copy(buyResult, buyOrders)
-
-	sort.Slice(buyResult, func(i, j int) bool {
-		r := buyResult[i].Price.Compare(buyResult[j].Price)
-		if r == 0 {
-			return !buyResult[i].CreatedAt.After(buyResult[j].CreatedAt)
-		} else if r == -1 {
+		sort.Slice(sellResult, func(i, j int) bool {
+			r := sellResult[i].Price.Compare(sellResult[j].Price)
+			if r == 0 {
+				return !sellResult[i].CreatedAt.After(sellResult[j].CreatedAt)
+			} else if r == -1 {
+				return true
+			}
 			return false
-		}
-		return true
-	})
+		})
+		buyResult = make([]model.Order, len(buyOrders))
+		copy(buyResult, buyOrders)
+
+		sort.Slice(buyResult, func(i, j int) bool {
+			r := buyResult[i].Price.Compare(buyResult[j].Price)
+			if r == 0 {
+				return !buyResult[i].CreatedAt.After(buyResult[j].CreatedAt)
+			} else if r == -1 {
+				return false
+			}
+			return true
+		})
+		return sellOrders, buyOrders, sellResult, buyResult
+	}
+
 	type args struct {
-		orders []*model.Order
-		result []*model.Order
-		side   model.OrderSide
+		getTestCaseFunc func(min, max int64) (sellOrders, buyOrders, sellResult, buyResult []model.Order)
+		side            model.OrderSide
+		queueType       model.QueueType
+		min             int64
+		max             int64
 	}
 	tests := []struct {
 		name string
 		args args
 	}{
 		{
-			name: "加入多筆掛賣訂單 確認order book 中掛賣的順序是對的",
+			name: "RBT - 加入多筆掛賣 and 掛買 確認order book 中掛賣的順序是對的",
 			args: args{
-				side:   model.OrderSideSell,
-				orders: sellOrders,
-				result: sellResult,
+				side:            model.OrderSideSell,
+				getTestCaseFunc: getTestCase,
+				queueType:       model.QueueTypePriceTree,
+				min:             10000,
+				max:             1000000,
 			},
 		},
 		{
-			name: "加入多筆掛買訂單 確認order book 中掛買的順序是對的",
+			name: "ArrayList - 加入多筆掛買訂單 確認order book 中掛買的順序是對的",
 			args: args{
-				side:   model.OrderSideBuy,
-				orders: buyOrders,
-				result: buyResult,
+				side:            model.OrderSideBuy,
+				getTestCaseFunc: getTestCase,
+				queueType:       model.QueueTypeArrayList,
+				min:             1000,
+				max:             100000,
 			},
 		},
 	}
 
 	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			orderBook := model.NewOrderBook()
-			for _, order := range tt.args.orders {
-				orderBook.AddOrder(order)
+		sellOrders, buyOrders, sellResult, buyResult := tt.args.getTestCaseFunc(tt.args.min, tt.args.max)
+		t.Run(tt.name+"with 賣", func(t *testing.T) {
+			orderBook := model.NewOrderBook(tt.args.queueType)
+			for _, order := range sellOrders {
+				orderBook.AddOrder(&order)
 			}
+			orderInOrderBook := orderBook.GetAllSellOrders()
 
-			var orderInOrderBook []*model.Order
-
-			switch tt.args.side {
-			case model.OrderSideBuy:
-				orderInOrderBook = orderBook.GetAllBuyOrders()
-			case model.OrderSideSell:
-				orderInOrderBook = orderBook.GetAllSellOrders()
-			}
 			t.Logf("Total orders : %d", len(orderInOrderBook))
-			if len(orderInOrderBook) != len(tt.args.result) {
-				t.Errorf("AddOrders(%s) result lengh not equal, len orderInOrderBook: %d , len result: %d", tt.name, len(orderInOrderBook), len(tt.args.result))
+			if len(orderInOrderBook) != len(sellResult) {
+				t.Errorf("AddOrders(%s) result lengh not equal, len orderInOrderBook: %d , len result: %d", tt.name, len(orderInOrderBook), len(sellResult))
 			}
 
 			for i, order := range orderInOrderBook {
-				if order.ID != tt.args.result[i].ID {
+				if order.ID != sellResult[i].ID {
+					t.Errorf("AddOrder(%s) the sort is wrong!", tt.name)
+					t.Failed()
+				}
+			}
+		})
+
+		t.Run(tt.name+"with 買", func(t *testing.T) {
+			orderBook := model.NewOrderBook(tt.args.queueType)
+			for _, order := range buyOrders {
+				orderBook.AddOrder(&order)
+			}
+			orderInOrderBook := orderBook.GetAllBuyOrders()
+
+			t.Logf("Total orders : %d", len(orderInOrderBook))
+			if len(orderInOrderBook) != len(buyResult) {
+				t.Errorf("AddOrders(%s) result lengh not equal, len orderInOrderBook: %d , len result: %d", tt.name, len(orderInOrderBook), len(buyResult))
+			}
+
+			for i, order := range orderInOrderBook {
+				if order.ID != buyResult[i].ID {
 					t.Errorf("AddOrder(%s) the sort is wrong!", tt.name)
 					t.Failed()
 				}
@@ -103,8 +127,8 @@ func Test_CancelOrder(t *testing.T) {
 	cancelOrder := orders[RandomInt(0, int64(len(orders)))]
 
 	type args struct {
-		orders      []*model.Order
-		cancelOrder *model.Order
+		orders      []model.Order
+		cancelOrder model.Order
 	}
 	tests := []struct {
 		name string
@@ -121,12 +145,12 @@ func Test_CancelOrder(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			orderBook := model.NewOrderBook()
+			orderBook := model.NewOrderBook(model.QueueTypePriceTree)
 			for _, order := range tt.args.orders {
-				orderBook.AddOrder(order)
+				orderBook.AddOrder(&order)
 			}
 
-			orderBook.CancelOrder(tt.args.cancelOrder)
+			orderBook.CancelOrder(&tt.args.cancelOrder)
 
 			curOrders := orderBook.GetAllBuyOrders()
 			curOrders = append(curOrders, orderBook.GetAllSellOrders()...)
@@ -142,21 +166,13 @@ func Test_CancelOrder(t *testing.T) {
 
 }
 
-// 搓合效能測試
-func BenchmarkMatchOrders(b *testing.B) {
-	orders := createOrder(int64(b.N), model.OrderSideUnknow, model.OrderTypeUnknow, 1, 100, 1, 100)
-	orderBook := model.NewOrderBook()
-	b.Logf("orders len:%d", len(orders))
-	for i := 0; i < b.N; i++ {
-		orderBook.Match(orders[i])
-	}
-}
-
 // TODO : 需要補一個測試是驗證撮合的正確性 -> 只驗搓合的正確性，訂單簿的順序不在此測試範圍
+// 跑得久沒關係 可以用最暴力的方法且一定正確的方式，當對照組，然後要測的當實驗組
+
 // func
 
-func createOrder(q int64, side model.OrderSide, orderType model.OrderType, priceMin, priceMax, amountMin, amountMax int64) []*model.Order {
-	orders := make([]*model.Order, 0, q)
+func createOrder(q int64, side model.OrderSide, orderType model.OrderType, priceMin, priceMax, amountMin, amountMax int64) []model.Order {
+	orders := make([]model.Order, 0, q)
 	for i := int64(0); i < q; i++ {
 		curSide := side
 		if curSide == model.OrderSideUnknow {
@@ -168,7 +184,7 @@ func createOrder(q int64, side model.OrderSide, orderType model.OrderType, price
 			curType = model.OrderType(RandomInt(1, 2))
 		}
 
-		orders = append(orders, &model.Order{
+		orders = append(orders, model.Order{
 			ID:        uint64(i),
 			Side:      curSide,
 			Type:      curType,

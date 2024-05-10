@@ -1,9 +1,10 @@
-.PHONY: run build docker-build docker-run db-run db-remove docker-remove test benchmark
+.PHONY: run build docker-build docker-run db-run db-remove docker-remove test benchmark check-pprof
 cur := $(shell pwd)
 
 db-container-id := $(shell docker ps -a| grep mysql | awk '{print $$1}')
 trading-engine-container-id := $(shell docker ps -a | grep trading-engine | awk '{print $$1}')
 
+args = `arg="$(filter-out $@,$(MAKECMDGOALS))" && echo $${arg:-${1}}`
 
 test: 
 	@go clean -testcache & go test -v ./test/order_book_test.go
@@ -16,6 +17,9 @@ run:
 
 build:
 	@go build -v -o bin/trading-engine ./main.go
+
+check-pprof:
+	@go tool pprof -http :8080 $(call args,defaultstring)
 
 docker-build:
 	@docker build --tag n960321/trading-engine:latest --file build/dockerfile .
