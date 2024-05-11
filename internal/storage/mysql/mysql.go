@@ -54,11 +54,6 @@ func NewDatabase(config Config) *Database {
 	sqlDB.SetMaxIdleConns(config.MaxIdleConns)
 	sqlDB.SetMaxOpenConns(config.MaxOpenConns)
 
-	if !db.Migrator().HasTable(&model.Order{}) {
-		db.Migrator().CreateTable(&model.Order{})
-	}
-	db.AutoMigrate(&model.Order{})
-
 	log.Info().Msgf("Connect to Database [%v] Successful!", config.GetDSN())
 
 	return &Database{
