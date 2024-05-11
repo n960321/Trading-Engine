@@ -10,7 +10,6 @@ type Trade struct {
 	ID        uint64
 	TakerID   uint64
 	MakerID   uint64
-	TakerSide OrderSide
 	Amount    decimal.Decimal
 	Price     decimal.Decimal
 	CreatedAt time.Time

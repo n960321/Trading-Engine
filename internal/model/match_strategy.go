@@ -37,7 +37,6 @@ func (l LimitStrategy) MatchOrder(buyQueue, sellQueue OrderQueueior, taker *Orde
 			trades = append(trades, &Trade{
 				TakerID:   taker.ID,
 				MakerID:   maker.ID,
-				TakerSide: taker.Side,
 				Amount:    maker.GetLaveAmount(),
 				Price:     maker.Price,
 				CreatedAt: time.Now(),
@@ -51,7 +50,6 @@ func (l LimitStrategy) MatchOrder(buyQueue, sellQueue OrderQueueior, taker *Orde
 			trades = append(trades, &Trade{
 				TakerID:   taker.ID,
 				MakerID:   maker.ID,
-				TakerSide: taker.Side,
 				Amount:    taker.GetLaveAmount(),
 				Price:     maker.Price,
 				CreatedAt: time.Now(),
@@ -101,7 +99,6 @@ func (l MarketStrategy) MatchOrder(buyQueue, sellQueue OrderQueueior, taker *Ord
 			trades = append(trades, &Trade{
 				TakerID:   taker.ID,
 				MakerID:   maker.ID,
-				TakerSide: taker.Side,
 				Amount:    maker.GetLaveAmount(),
 				Price:     maker.Price,
 				CreatedAt: time.Now(),
@@ -115,7 +112,6 @@ func (l MarketStrategy) MatchOrder(buyQueue, sellQueue OrderQueueior, taker *Ord
 			trades = append(trades, &Trade{
 				TakerID:   taker.ID,
 				MakerID:   maker.ID,
-				TakerSide: taker.Side,
 				Amount:    taker.GetLaveAmount(),
 				Price:     maker.Price,
 				CreatedAt: time.Now(),
