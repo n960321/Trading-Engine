@@ -10,7 +10,7 @@ test:
 	@go clean -testcache & go test -v ./test/order_book_test.go
 
 benchmark:
-	@go test -v -bench=. -run=none ./test/...
+	@go clean -testcache & go test -v -bench=. -run=none ./test/...
 
 run:
 	@go run main.go server -l true -c configs/dev.yaml
