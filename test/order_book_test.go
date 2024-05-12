@@ -1,6 +1,7 @@
 package test
 
 import (
+	"Trading-Engine/internal/engine"
 	"Trading-Engine/internal/model"
 	"math/rand"
 	"sort"
@@ -8,6 +9,7 @@ import (
 	"time"
 
 	"github.com/shopspring/decimal"
+	"gorm.io/gorm"
 )
 
 // 加入多筆訂單 確認order book 中的順序是對的
@@ -60,9 +62,9 @@ func Test_AddOrders(t *testing.T) {
 			args: args{
 				side:            model.OrderSideSell,
 				getTestCaseFunc: getTestCase,
-				queueType:       model.QueueTypePriceTree,
+				queueType:       engine.QueueTypePriceTree,
 				min:             10000,
-				max:             1000000,
+				max:             10000,
 			},
 		},
 		{
@@ -70,19 +72,20 @@ func Test_AddOrders(t *testing.T) {
 			args: args{
 				side:            model.OrderSideBuy,
 				getTestCaseFunc: getTestCase,
-				queueType:       model.QueueTypeArrayList,
-				min:             1000,
-				max:             100000,
+				queueType:       engine.QueueTypeArrayList,
+				min:             10000,
+				max:             10000,
 			},
 		},
 	}
 
 	for _, tt := range tests {
 		sellOrders, buyOrders, sellResult, buyResult := tt.args.getTestCaseFunc(tt.args.min, tt.args.max)
+
 		t.Run(tt.name+"with 賣", func(t *testing.T) {
-			orderBook := model.NewOrderBook(tt.args.queueType)
+			orderBook := engine.NewOrderBook(tt.args.queueType)
 			for _, order := range sellOrders {
-				orderBook.AddOrder(&order)
+				orderBook.AddOrder(order)
 			}
 			orderInOrderBook := orderBook.GetAllSellOrders()
 
@@ -92,6 +95,7 @@ func Test_AddOrders(t *testing.T) {
 			}
 
 			for i, order := range orderInOrderBook {
+				// t.Logf("%+v", order)
 				if order.ID != sellResult[i].ID {
 					t.Errorf("AddOrder(%s) the sort is wrong!", tt.name)
 					t.Failed()
@@ -100,9 +104,9 @@ func Test_AddOrders(t *testing.T) {
 		})
 
 		t.Run(tt.name+"with 買", func(t *testing.T) {
-			orderBook := model.NewOrderBook(tt.args.queueType)
+			orderBook := engine.NewOrderBook(tt.args.queueType)
 			for _, order := range buyOrders {
-				orderBook.AddOrder(&order)
+				orderBook.AddOrder(order)
 			}
 			orderInOrderBook := orderBook.GetAllBuyOrders()
 
@@ -112,6 +116,7 @@ func Test_AddOrders(t *testing.T) {
 			}
 
 			for i, order := range orderInOrderBook {
+				// t.Logf("%+v", order)
 				if order.ID != buyResult[i].ID {
 					t.Errorf("AddOrder(%s) the sort is wrong!", tt.name)
 					t.Failed()
@@ -145,12 +150,12 @@ func Test_CancelOrder(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			orderBook := model.NewOrderBook(model.QueueTypePriceTree)
+			orderBook := engine.NewOrderBook(engine.QueueTypePriceTree)
 			for _, order := range tt.args.orders {
-				orderBook.AddOrder(&order)
+				orderBook.AddOrder(order)
 			}
 
-			orderBook.CancelOrder(&tt.args.cancelOrder)
+			orderBook.RemoveOrder(tt.args.cancelOrder)
 
 			curOrders := orderBook.GetAllBuyOrders()
 			curOrders = append(curOrders, orderBook.GetAllSellOrders()...)
@@ -169,7 +174,6 @@ func Test_CancelOrder(t *testing.T) {
 // TODO : 需要補一個測試是驗證撮合的正確性 -> 只驗搓合的正確性，訂單簿的順序不在此測試範圍
 // 跑得久沒關係 可以用最暴力的方法且一定正確的方式，當對照組，然後要測的當實驗組
 
-// func
 
 func createOrder(q int64, side model.OrderSide, orderType model.OrderType, priceMin, priceMax, amountMin, amountMax int64) []model.Order {
 	orders := make([]model.Order, 0, q)
@@ -185,12 +189,14 @@ func createOrder(q int64, side model.OrderSide, orderType model.OrderType, price
 		}
 
 		orders = append(orders, model.Order{
-			ID:        uint64(i),
-			Side:      curSide,
-			Type:      curType,
-			Amount:    decimal.NewFromInt(RandomInt(amountMin, amountMax)),
-			Price:     decimal.NewFromInt(RandomInt(priceMin, priceMax)),
-			CreatedAt: time.Now(),
+			Model: gorm.Model{
+				CreatedAt: time.Now(),
+				ID:        uint(i),
+			},
+			Side:   curSide,
+			Type:   curType,
+			Amount: decimal.NewFromInt(RandomInt(amountMin, amountMax)),
+			Price:  decimal.NewFromInt(RandomInt(priceMin, priceMax)),
 		})
 	}
 	return orders

@@ -1,25 +1,26 @@
-package model
+package engine
 
 import (
+	"Trading-Engine/internal/model"
 	"time"
 
 	rbt "github.com/emirpasic/gods/trees/redblacktree"
 	"github.com/shopspring/decimal"
 )
 
-var QueueTypePriceTree = QueueType("PriceTree")
+var QueueTypePriceTree = model.QueueType("PriceTree")
 
 type PriceTree struct {
 	tree *rbt.Tree
-	side OrderSide
+	side model.OrderSide
 }
 
-func NewRBTPriceTree(side OrderSide) OrderQueueior {
+func NewRBTPriceTree(side model.OrderSide) OrderQueueior {
 	var tree *rbt.Tree
 	switch side {
-	case OrderSideBuy:
+	case model.OrderSideBuy:
 		tree = rbt.NewWith(BuySideComparator)
-	case OrderSideSell:
+	case model.OrderSideSell:
 		tree = rbt.NewWith(SellSideComparator)
 	}
 	return &PriceTree{
@@ -70,7 +71,7 @@ func (p *PriceTree) Size() int64 {
 	return result
 }
 
-func (p *PriceTree) AddOrder(order *Order) {
+func (p *PriceTree) AddOrder(order model.Order) {
 	var timeTree *TimeTree
 	if tree, ok := p.tree.Get(order.Price); ok {
 		timeTree = tree.(*TimeTree)
@@ -81,7 +82,7 @@ func (p *PriceTree) AddOrder(order *Order) {
 	timeTree.AddOrder(order)
 }
 
-func (p *PriceTree) RemoveOrder(order *Order) {
+func (p *PriceTree) RemoveOrder(order model.Order) {
 	if tree, ok := p.tree.Get(order.Price); ok {
 		timeTree := tree.(*TimeTree)
 		timeTree.RemoveOrder(order)
@@ -92,17 +93,17 @@ func (p *PriceTree) RemoveOrder(order *Order) {
 	}
 }
 
-func (p *PriceTree) GetOrdersBetweenPirceWithAmount(price, laveAmount decimal.Decimal) []*Order {
-	orders := make([]*Order, 0)
+func (p *PriceTree) GetOrdersBetweenPirceWithAmount(price, laveAmount decimal.Decimal) []model.Order {
+	orders := make([]model.Order, 0)
 	it := p.tree.Iterator()
 	for it.Next() {
 		curPrice := it.Key().(decimal.Decimal)
-		if p.side == OrderSideBuy && curPrice.LessThan(price) || (p.side == OrderSideSell && curPrice.GreaterThan(price)) {
+		if p.side == model.OrderSideBuy && curPrice.LessThan(price) || (p.side == model.OrderSideSell && curPrice.GreaterThan(price)) {
 			break
 		}
 
 		timeTree := it.Value().(*TimeTree)
-		var subOrders []*Order
+		var subOrders []model.Order
 		subOrders, laveAmount = timeTree.GetOrdersWithAmount(laveAmount)
 		orders = append(orders, subOrders...)
 		if laveAmount.LessThanOrEqual(decimal.Zero) {
@@ -113,12 +114,12 @@ func (p *PriceTree) GetOrdersBetweenPirceWithAmount(price, laveAmount decimal.De
 	return orders
 }
 
-func (p *PriceTree) GetOrdersWithAmount(laveAmount decimal.Decimal) []*Order {
-	orders := make([]*Order, 0)
+func (p *PriceTree) GetOrdersWithAmount(laveAmount decimal.Decimal) []model.Order {
+	orders := make([]model.Order, 0)
 	it := p.tree.Iterator()
 	for it.Next() {
 		timeTree := it.Value().(*TimeTree)
-		var subOrders []*Order
+		var subOrders []model.Order
 		subOrders, laveAmount = timeTree.GetOrdersWithAmount(laveAmount)
 		orders = append(orders, subOrders...)
 		if laveAmount.LessThanOrEqual(decimal.Zero) {
@@ -129,8 +130,8 @@ func (p *PriceTree) GetOrdersWithAmount(laveAmount decimal.Decimal) []*Order {
 	return orders
 }
 
-func (p *PriceTree) GetAllOrders() []*Order {
-	orders := make([]*Order, 0, p.Size())
+func (p *PriceTree) GetAllOrders() []model.Order {
+	orders := make([]model.Order, 0, p.Size())
 	it := p.tree.Iterator()
 	for it.Next() {
 		timeTree := it.Value().(*TimeTree)
@@ -166,29 +167,29 @@ func IDComparator(a, b interface{}) int {
 	return -1
 }
 
-func (t *TimeTree) AddOrder(order *Order) {
+func (t *TimeTree) AddOrder(order model.Order) {
 	t.tree.Put(order.CreatedAt, order)
 	t.laveAmount = t.laveAmount.Add(order.GetLaveAmount())
 }
 
-func (t *TimeTree) RemoveOrder(order *Order) {
+func (t *TimeTree) RemoveOrder(order model.Order) {
 	t.tree.Remove(order.CreatedAt)
 	t.laveAmount = t.laveAmount.Sub(order.GetLaveAmount())
 }
 
-func (t *TimeTree) GetAllOrders(orders *[]*Order) {
+func (t *TimeTree) GetAllOrders(orders *[]model.Order) {
 	it := t.tree.Iterator()
 	for it.Next() {
-		order := it.Value().(*Order)
+		order := it.Value().(model.Order)
 		*orders = append(*orders, order)
 	}
 }
 
-func (t *TimeTree) GetOrdersWithAmount(laveAmount decimal.Decimal) ([]*Order, decimal.Decimal) {
-	orders := make([]*Order, 0)
+func (t *TimeTree) GetOrdersWithAmount(laveAmount decimal.Decimal) ([]model.Order, decimal.Decimal) {
+	orders := make([]model.Order, 0)
 	it := t.tree.Iterator()
 	for it.Next() {
-		order := it.Value().(*Order)
+		order := it.Value().(model.Order)
 		laveAmount = laveAmount.Sub(order.GetLaveAmount())
 		orders = append(orders, order)
 		if !laveAmount.GreaterThan(decimal.Zero) {

@@ -29,6 +29,11 @@ func NewServer(cfg Config, h *handler.Handler) *Server {
 
 	v1.POST("/order", h.CreateOrder)
 	v1.DELETE("/order/:order_id", h.DeleteOrder)
+	v1.GET("/order/:order_id", h.GetOrder)
+
+	v1.GET("/trade", h.ListTrades)
+
+	v1.GET("/orderbook",h.GetOrderBook)
 
 	return &Server{
 		app: &http.Server{

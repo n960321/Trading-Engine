@@ -11,7 +11,9 @@
 	* 3.3. [市價單流程圖](#-1)
 * 4. [如何設計掛單簿](#-1)
 * 5. [技術選型](#-1)
-* 6. [REF](#REF)
+* 6. [API](#API)
+* 7. [Project Layout](#ProjectLayout)
+* 8. [REF](#REF)
 
 <!-- vscode-markdown-toc-config
 	numbering=true
@@ -27,8 +29,8 @@
 1. [X] 新增限價單、市價單。
 2. [X] 刪除掛單。
 3. [X] 交易搓合的規則如下:
-    限價單(Limit): 當掛單進來時會優先查找低於限價的最優價格，如果有，則依照時間優先來進行數量撮合，如果沒有則放進掛單簿。
-    市價單(Market): 不指定價格，會依照當時最優價格及時間進行撮合。
+    限價單(Limit): 當掛單進來時會優先查找低於限價的最優價格，如果有，則依照時間優先來進行數量撮合，如果沒有或者成交數量不足則放進掛單簿。
+    市價單(Market): 不指定價格，會依照當時最優價格及時間進行撮合，如果當下沒有完全成交就部分成交，不進入掛單簿。
 4. [ ] 能夠向外通知以下事件:
     - 訂單已加入訂單簿
     - 訂單搓合完成
@@ -36,7 +38,9 @@
 
 ##  2. <a name='Non-functionalRequirements'></a>Non-functional Requirements
 
-1. [ ] 高可用 - 即便有發生錯誤也是可以正常執行下去。
+1. [ ] 可用性高 - 程式重啟(意外死掉後 或 正常重開) 可以繼續搓合
+                - DONE ~~在每次作動都即時去更新資料庫裡的資料~~
+                - TODO 啟動時會去把資料庫裡撈還沒搓合完的資訊
 
 
 ##  3. <a name=''></a>流程圖
@@ -114,13 +118,39 @@ flowchart TD
 
     - ~~`fiber`: 在此選了 fiber 這個框架做使用，原因是在當fiber開啟 prefork 模式時，處理request的效率是最高的，根據[這裡](https://www.techempower.com/benchmarks/#section=data-r22&hw=ph&test=composite&l=zijocf-cn3)。觀察他在Github上的星星樹與還有在維護的部分，選擇`fiber`作為我的web Framework。~~ **發現他其實是開多個process去listen同一個port，但我的訂單簿為了速度快，是放在本地的記憶體，不適合用這個**
 - **關連式資料庫**
-    - `Mysql` 為了測試上好紀錄資料，需要一個關連式資料庫來存取，選最常用的。
+    - `Mysql` 用來儲存訂單跟交易結果來呈現資料，故選最常用的。
+
+##  6. <a name='API'></a>API
+
+請使用 Postman 導入此[文件](./docs/postman/Trading-Engine.postman_collection.json)
 
 
-##  6. <a name='REF'></a>REF
+##  7. <a name='ProjectLayout'></a>Project Layout
+```
+├── build           -- 放置dockerfile
+├── cmd             -- 主要的程式
+├── configs         -- 配置檔案
+├── deployment      -- 部屬檔案的放置
+├── docs            -- 文件放置
+│   ├── image           -- 圖片
+│   └── postman         -- Postman 
+├── internal        -- 私有代碼
+│   ├── config          -- 配置檔結構及讀取
+│   ├── handler         -- 處理路由
+│   ├── model           -- 各個模型及功能實現
+│   ├── server          -- http
+│   └── storage         -- 有關儲存
+│       └── mysql           -- mysql的配置
+├── pkg             -- 可以讓別人用的
+│   └── logger          -- zerolog相關配置
+└── test            -- 放unit test的
+```
+##  8. <a name='REF'></a>REF
 
 [AVL Tree](https://zh.wikipedia.org/zh-tw/AVL%E6%A0%91)
 
 [Red Black Tree](https://zh.wikipedia.org/zh-tw/%E7%BA%A2%E9%BB%91%E6%A0%91)
 
 [gofiber/fiber](https://github.com/gofiber/fiber)
+
+[golang/project-layout](https://github.com/golang-standards/project-layout)

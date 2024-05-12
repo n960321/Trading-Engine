@@ -1,23 +1,21 @@
 package model
 
 import (
-	"time"
-
 	"github.com/shopspring/decimal"
+	"gorm.io/gorm"
 )
 
 type Trade struct {
-	ID        uint64
-	TakerID   uint64
-	MakerID   uint64
-	TakerSide OrderSide
-	Amount    decimal.Decimal
-	Price     decimal.Decimal
-	CreatedAt time.Time
+	gorm.Model
+	TakerID uint            `json:"TakerID" gorm:"column:taker_id"`
+	MakerID uint            `json:"MakerID" gorm:"column:maker_id"`
+	Amount  decimal.Decimal `json:"Amount" gorm:"column:amount;type:decimal(10,2)"`
+	Price   decimal.Decimal `json:"Price" gorm:"column:price;type:decimal(10,2)"`
 }
 
 type MatchResult struct {
-	Taker        *Order
-	FinishMakers []*Order
-	Trades       []*Trade
+	Taker           Order
+	FinishMakers    []Order
+	IncompleteMaker Order
+	Trades          []Trade
 }
