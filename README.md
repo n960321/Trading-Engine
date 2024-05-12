@@ -39,8 +39,8 @@
 ##  2. <a name='Non-functionalRequirements'></a>Non-functional Requirements
 
 1. [ ] 可用性高 - 程式重啟(意外死掉後 或 正常重開) 可以繼續搓合
-                - 在每次作動都即時去更新資料庫裡的資料
-                - 啟動時會去把資料庫裡撈還沒搓合完的資訊
+                - DONE ~~在每次作動都即時去更新資料庫裡的資料~~
+                - TODO 啟動時會去把資料庫裡撈還沒搓合完的資訊
 
 
 ##  3. <a name=''></a>流程圖
