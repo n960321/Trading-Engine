@@ -14,7 +14,7 @@
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "{\n    \"type\": 1,\n    \"side\": 2,\n    \"price\": 20,\n    \"amount\": 0.5\n}",
+					"raw": "{\n    \"Type\": 1,   //1 限價 ,2 市價\n    \"Side\": 2,   //1 買.  ,2 賣\n    \"Price\": 19,\n    \"Amount\": 3\n}",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -30,7 +30,7 @@
 						"order"
 					]
 				},
-				"description": "新增訂單且放進掛單簿搓合。\n\n| 欄位 | 型態 | 允許不填 | 備註 |\n| --- | --- | --- | --- |\n| side | int | no | 1: 賣單 , 2: 買單 |\n| type | int | no | 1: 限價單, 2: 市價單 |\n| price | float64 | yes | 價格，當為市價單此欄位無用 |\n| amount | float64 | no | 數量 |\n\n# Response\n\n| 欄位 | 型態 | 備註 |\n| --- | --- | --- |\n| id | int | 唯一值 |\n| side | int | 1: 賣單 , 2: 買單 |\n| type | int | 1: 限價單, 2: 市價單 |\n| price | float64 | 價格 |\n| amount | float64 | 數量 |\n| match_amount | float64 | 已成交數量 |\n| created_at | datetime | 建立的日期時間 |\n| updated_at | datetime | 更新的日期時間 |\n| deleted_at | object | 刪除的日期時間且顯示有無值 |\n\n## deleted_at object\n\n| 欄位 | 型態 | 備註 |\n| --- | --- | --- |\n| Time | datetime | 刪除的日期時間 |\n| Valid | bool | 值有效 |"
+				"description": "新增訂單且放進掛單簿搓合。\n\n| 欄位 | 型態 | 允許不填 | 備註 |\n| --- | --- | --- | --- |\n| Side | int | no | 1: 賣單 , 2: 買單 |\n| Type | int | no | 1: 限價單, 2: 市價單 |\n| Price | float64 | yes | 價格，當為市價單此欄位無用 |\n| Amount | float64 | no | 數量 |\n\n# Response\n\n| 欄位 | 型態 | 備註 |\n| --- | --- | --- |\n| ID | bigint | 唯一值 |\n| Side | int | 1: 賣單 , 2: 買單 |\n| Type | int | 1: 限價單, 2: 市價單 |\n| Price | float | 價格 |\n| Amount | float | 數量 |\n| MatchAmount | float64 | 已成交數量 |\n| Completed | bool | 此單是否已完成 |\n| CreatedAt | datetime | 建立的日期時間 |\n| UpdatedAt | datetime | 更新的日期時間 |\n| DeletedAt | object | 刪除的日期時間且顯示有無值 |\n\n## DeletedAt object\n\n| 欄位 | 型態 | 備註 |\n| --- | --- | --- |\n| Time | datetime | 刪除的日期時間 |\n| Valid | bool | 值有效 |"
 			},
 			"response": []
 		},
@@ -51,13 +51,13 @@
 					"variable": [
 						{
 							"key": "order_id",
-							"value": "",
-							"description": "訂單唯一值",
+							"value": "5",
+							"description": "訂單唯一值 必填",
 							"uuid": "3b7ca446-6870-480f-b2a8-5b0faec461fa"
 						}
 					]
 				},
-				"description": "取得掛單\n\n# Response\n\n| 欄位 | 型態 | 備註 |\n| --- | --- | --- |\n| id | int | 唯一值 |\n| side | int | 1: 賣單 , 2: 買單 |\n| type | int | 1: 限價單, 2: 市價單 |\n| price | float64 | 價格 |\n| amount | float64 | 數量 |\n| match_amount | float64 | 已成交數量 |\n| created_at | datetime | 建立的日期時間 |\n| updated_at | datetime | 更新的日期時間 |\n| deleted_at | object | 刪除的日期時間且顯示有無值 |\n\n## deleted_at object\n\n| 欄位 | 型態 | 備註 |\n| --- | --- | --- |\n| Time | datetime | 刪除的日期時間 |\n| Valid | bool | 值有效 |"
+				"description": "取得掛單\n\n# Response\n\n| 欄位 | 型態 | 備註 |\n| --- | --- | --- |\n| ID | bigint | 唯一值 |\n| Side | int | 1: 賣單 , 2: 買單 |\n| Type | int | 1: 限價單, 2: 市價單 |\n| Price | float | 價格 |\n| Amount | float | 數量 |\n| MatchAmount | float64 | 已成交數量 |\n| Completed | bool | 此單是否已完成 |\n| CreatedAt | datetime | 建立的日期時間 |\n| UpdatedAt | datetime | 更新的日期時間 |\n| DeletedAt | object | 刪除的日期時間且顯示有無值 |\n\n## DeletedAt object\n\n| 欄位 | 型態 | 備註 |\n| --- | --- | --- |\n| Time | datetime | 刪除的日期時間 |\n| Valid | bool | 值有效 |"
 			},
 			"response": []
 		},
@@ -78,13 +78,13 @@
 					"variable": [
 						{
 							"key": "order_id",
-							"value": "",
+							"value": "5",
 							"description": "訂單唯一值",
 							"uuid": "38e5c42d-5e24-48c0-99ef-135227d056ef"
 						}
 					]
 				},
-				"description": "移除掛單"
+				"description": "移除掛單且更新在資料庫的狀態"
 			},
 			"response": []
 		},
@@ -94,27 +94,47 @@
 				"method": "GET",
 				"header": [],
 				"url": {
-					"raw": "{{HOST}}{{API_VERSION}}/trades?maker_id=&taker_id=",
+					"raw": "{{HOST}}{{API_VERSION}}/trade",
 					"host": [
 						"{{HOST}}{{API_VERSION}}"
 					],
 					"path": [
-						"trades"
+						"trade"
 					],
 					"query": [
 						{
-							"key": "maker_id",
-							"value": "",
-							"description": "maker訂單的唯一值"
+							"key": "makerID",
+							"value": "3",
+							"description": "maker訂單的唯一值",
+							"disabled": true
 						},
 						{
-							"key": "taker_id",
-							"value": "",
-							"description": "taker訂單的唯一值"
+							"key": "takerID",
+							"value": "4",
+							"description": "taker訂單的唯一值",
+							"disabled": true
 						}
 					]
 				},
-				"description": "取得多筆交易\n\n# Response"
+				"description": "取得多筆交易\n\n# Response\n\n| Name | Type | Description |\n| --- | --- | --- |\n| ID | binint | 唯一值 |\n| TakerID | binint | 吃單的id |\n| MakerID | binint | 掛單的id |\n| Amount | float | 購買數量 |\n| Price | float | 價格 |\n| CreatedAt | datetime | 創建時間 |\n| UpdatedAt | datetime | 創建時間 |\n| DeletedAt | datetime | 刪除的日期時間且顯示有無值 |\n\n## deleted_at object\n\n| 欄位 | 型態 | 備註 |\n| --- | --- | --- |\n| Time | datetime | 刪除的日期時間 |\n| Valid | bool | 值有效 |\n## Example\n\n``` json\n[\n    {\n        \"ID\": 1,\n        \"CreatedAt\": \"2024-05-12T10:44:30.23+08:00\",\n        \"UpdatedAt\": \"2024-05-12T10:44:30.23+08:00\",\n        \"DeletedAt\": null,\n        \"TakerID\": 4,\n        \"MakerID\": 3,\n        \"Amount\": \"3\",\n        \"Price\": \"19\"\n    }\n]\n\n ```"
+			},
+			"response": []
+		},
+		{
+			"name": "get order book",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{HOST}}{{API_VERSION}}/orderbook",
+					"host": [
+						"{{HOST}}{{API_VERSION}}"
+					],
+					"path": [
+						"orderbook"
+					]
+				},
+				"description": "取得當前訂單簿資料\n\n# Response Example\n\n```JSON\n{\n    \"buy\": [\n        {\n            \"ID\": 1,\n            \"CreatedAt\": \"2024-05-12T06:33:45.984Z\",\n            \"UpdatedAt\": \"2024-05-12T06:33:46Z\",\n            \"DeletedAt\": null,\n            \"Side\": 1,\n            \"Type\": 1,\n            \"Amount\": \"5\",\n            \"Price\": \"15\",\n            \"MatchAmount\": \"0\",\n            \"Completed\": false\n        }\n    ],\n    \"sell\": [\n        {\n            \"ID\": 2,\n            \"CreatedAt\": \"2024-05-12T06:34:00.36Z\",\n            \"UpdatedAt\": \"2024-05-12T06:34:00.379Z\",\n            \"DeletedAt\": null,\n            \"Side\": 2,\n            \"Type\": 1,\n            \"Amount\": \"5\",\n            \"Price\": \"17\",\n            \"MatchAmount\": \"0\",\n            \"Completed\": false\n        }\n    ]\n}\n```"
 			},
 			"response": []
 		}
