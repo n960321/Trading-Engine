@@ -10,6 +10,7 @@
 	* 3.2. [限價掛賣單流程圖](#-1)
 	* 3.3. [市價單流程圖](#-1)
 * 4. [如何設計掛單簿](#-1)
+	* 4.1. [TODO](#TODO)
 * 5. [技術選型](#-1)
 * 6. [API](#API)
 * 7. [Project Layout](#ProjectLayout)
@@ -29,7 +30,9 @@
 1. [X] 新增限價單、市價單。
 2. [X] 刪除掛單。
 3. [X] 交易搓合的規則如下:
+    
     限價單(Limit): 當掛單進來時會優先查找低於限價的最優價格，如果有，則依照時間優先來進行數量撮合，如果沒有或者成交數量不足則放進掛單簿。
+    
     市價單(Market): 不指定價格，會依照當時最優價格及時間進行撮合，如果當下沒有完全成交就部分成交，不進入掛單簿。
 4. [ ] 能夠向外通知以下事件:
     - 訂單已加入訂單簿
@@ -39,8 +42,8 @@
 ##  2. <a name='Non-functionalRequirements'></a>Non-functional Requirements
 
 1. [ ] 可用性高 - 程式重啟(意外死掉後 或 正常重開) 可以繼續搓合
-                - DONE ~~在每次作動都即時去更新資料庫裡的資料~~
-                - TODO 啟動時會去把資料庫裡撈還沒搓合完的資訊
+    - DONE ~~在每次作動都即時去更新資料庫裡的資料~~
+    - TODO 啟動時會去把資料庫裡撈還沒搓合完的資訊
 
 
 ##  3. <a name=''></a>流程圖
@@ -48,10 +51,10 @@
 ```mermaid
 flowchart TD
     Limit --> buy(從掛賣單中的最優價格開始取訂單\nAmount總數會剛好等於taker Amount 或超過一點)
-    buy --> check_buy{列表長度是否為零}
+    buy --> check_buy{finish makers\n長度是否為零}
     check_buy -- Yes --> addToBuy(加到掛單隊列)
-    check_buy -- No --> match(搓合成功 產生Match Result)
-    match --> delete_maker(刪除finish makers在掛賣列表的位置)
+    check_buy -- No --> match(搓合成功)
+    match --> delete_maker(更新Maker在訂單簿的狀態)
     delete_maker --> buyAmount{掛買剩餘Amount大於0}
     buyAmount -- Yes --> addToBuy
     buyAmount -- No --> End
@@ -61,10 +64,10 @@ flowchart TD
 ```mermaid
 flowchart TD
     Limit --> sell(從掛買單中的最優價格開始取訂單\nAmount總數會剛好等於taker Amount 或超過一點)
-    sell --> check_sell{列表長度是否為零}
+    sell --> check_sell{finish makers\n長度是否為零}
     check_sell -- Yes --> addToSell(加到賣單隊列)
-    check_sell -- No --> match(產生Match Result)
-    match --> delete_maker(刪除finish makers在掛買列表的位置)
+    check_sell -- No --> match(搓合成功)
+    match --> delete_maker(更新Maker在訂單簿的狀態)
     delete_maker --> sellAmount{掛賣剩餘Amount大於0}
     sellAmount -- Yes --> addToSell
     sellAmount -- No --> End
@@ -76,10 +79,10 @@ flowchart TD
 ```mermaid
 flowchart TD
     Market --> sell(從掛單中的最優價格開始取訂單\nAmount總數會剛好等於taker Amount 或超過一點)
-    sell --> check_sell{列表長度是否為零}
+    sell --> check_sell{finish makers\n長度是否為零}
     check_sell -- Yes --> End
-    check_sell -- No --> match(產生Match Result)
-    match --> delete_maker(刪除finish makers在掛單列表的位置)
+    check_sell -- No --> match(搓合成功)
+    match --> delete_maker(更新Maker在訂單簿的狀態)
     delete_maker --> End 
 ```
 
@@ -109,6 +112,10 @@ flowchart TD
 
 根據撮合規定，會有需要價格順序，再來是時間順序，所以我會有一個 `PriceTree` 以紅黑樹來實現，再來每個節點裡都會在放一個 `TimeTree` 也是以紅黑樹來實現，用來排序時間且裡面會放各個Order。
 
+
+###  4.1. <a name='TODO'></a>TODO
+雖然表上RBT是最快的，但實現起來卻不是，原因是在之中會去呼叫一些函式，需要再花時間看一下哪邊可以讓他更快。
+
 ##  5. <a name='-1'></a>技術選型
 
 - **Web Framework** 
@@ -131,16 +138,21 @@ flowchart TD
 ├── cmd             -- 主要的程式
 ├── configs         -- 配置檔案
 ├── deployment      -- 部屬檔案的放置
+│   ├── mysql           -- 與mysql部署相關的檔案
+│   │   └── init            
+│   └── trading-engine  -- 與server部署相關的檔案
+│       └── config
 ├── docs            -- 文件放置
 │   ├── image           -- 圖片
 │   └── postman         -- Postman 
 ├── internal        -- 私有代碼
 │   ├── config          -- 配置檔結構及讀取
+│   ├── engine          -- 搓合引擎的實現
 │   ├── handler         -- 處理路由
 │   ├── model           -- 各個模型及功能實現
-│   ├── server          -- http
+│   ├── server          -- http gin server
 │   └── storage         -- 有關儲存
-│       └── mysql           -- mysql的配置
+│       └── mysql           -- mysql的實例及方法
 ├── pkg             -- 可以讓別人用的
 │   └── logger          -- zerolog相關配置
 └── test            -- 放unit test的
