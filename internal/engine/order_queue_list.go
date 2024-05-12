@@ -1,23 +1,26 @@
-package model
+package engine
 
 import (
+	"Trading-Engine/internal/model"
+
 	al "github.com/emirpasic/gods/lists/arraylist"
 	"github.com/shopspring/decimal"
 )
 
-var QueueTypeArrayList = QueueType("ArrayList")
+var QueueTypeArrayList = model.QueueType("ArrayList")
+
 type ArrayList struct {
 	list       *al.List
-	side       OrderSide
+	side       model.OrderSide
 	comparator func(a, b interface{}) int
 }
 
-func NewQueueByList(side OrderSide) OrderQueueior {
-	var list *al.List
-	list = al.New()
+func NewQueueByList(side model.OrderSide) OrderQueueior {
+
+	list := al.New()
 	var c func(a, b interface{}) int
 
-	if side == OrderSideBuy {
+	if side == model.OrderSideBuy {
 		c = BuyPriceTimeComparator
 	} else {
 		c = SellPriceTimeComparator
@@ -31,23 +34,23 @@ func NewQueueByList(side OrderSide) OrderQueueior {
 }
 
 func BuyPriceTimeComparator(a, b interface{}) int {
-	aKey := a.(*Order)
-	bKey := b.(*Order)
+	aKey := a.(model.Order)
+	bKey := b.(model.Order)
 
 	c := aKey.Price.Compare(bKey.Price)
 	if c != 0 {
-		return c*-1
+		return c * -1
 	}
 	return aKey.CreatedAt.Compare(bKey.CreatedAt)
 }
 
 func SellPriceTimeComparator(a, b interface{}) int {
-	aKey := a.(*Order)
-	bKey := b.(*Order)
+	aKey := a.(model.Order)
+	bKey := b.(model.Order)
 
 	c := aKey.Price.Compare(bKey.Price)
 	if c != 0 {
-		return c 
+		return c
 	}
 	return aKey.CreatedAt.Compare(bKey.CreatedAt)
 }
@@ -56,14 +59,26 @@ func (l *ArrayList) Size() int64 {
 	return int64(l.list.Size())
 }
 
-func (l *ArrayList) AddOrder(order *Order) {
-	l.list.Add(order)
+func (l *ArrayList) AddOrder(order model.Order) {
+
+	find := func(index int, value interface{}) bool {
+		o := value.(model.Order)
+		return o.ID == order.ID
+	}
+	i, _ := l.list.Find(find)
+
+	if i == -1 {
+		l.list.Add(order)
+	} else {
+		l.list.Remove(i)
+	}
+
 	l.list.Sort(l.comparator)
 }
 
-func (l *ArrayList) RemoveOrder(order *Order) {
+func (l *ArrayList) RemoveOrder(order model.Order) {
 	find := func(index int, value interface{}) bool {
-		o := value.(*Order)
+		o := value.(model.Order)
 		return o.ID == order.ID
 	}
 	i, _ := l.list.Find(find)
@@ -75,13 +90,13 @@ func (l *ArrayList) RemoveOrder(order *Order) {
 	l.list.Remove(i)
 }
 
-func (l *ArrayList) GetOrdersBetweenPirceWithAmount(price, laveAmount decimal.Decimal) []*Order {
-	orders := make([]*Order, 0)
+func (l *ArrayList) GetOrdersBetweenPirceWithAmount(price, laveAmount decimal.Decimal) []model.Order {
+	orders := make([]model.Order, 0)
 	it := l.list.Iterator()
 	for it.Next() {
-		order := it.Value().(*Order)
+		order := it.Value().(model.Order)
 
-		if l.side == OrderSideBuy && order.Price.LessThan(price) || (l.side == OrderSideSell && order.Price.GreaterThan(price)) {
+		if l.side == model.OrderSideBuy && order.Price.LessThan(price) || (l.side == model.OrderSideSell && order.Price.GreaterThan(price)) {
 			break
 		}
 
@@ -95,11 +110,11 @@ func (l *ArrayList) GetOrdersBetweenPirceWithAmount(price, laveAmount decimal.De
 	return orders
 }
 
-func (l *ArrayList) GetOrdersWithAmount(laveAmount decimal.Decimal) []*Order {
-	orders := make([]*Order, 0)
+func (l *ArrayList) GetOrdersWithAmount(laveAmount decimal.Decimal) []model.Order {
+	orders := make([]model.Order, 0)
 	it := l.list.Iterator()
 	for it.Next() {
-		order := it.Value().(*Order)
+		order := it.Value().(model.Order)
 		laveAmount = laveAmount.Sub(order.GetLaveAmount())
 		orders = append(orders, order)
 		if laveAmount.LessThanOrEqual(decimal.Zero) {
@@ -110,12 +125,12 @@ func (l *ArrayList) GetOrdersWithAmount(laveAmount decimal.Decimal) []*Order {
 	return orders
 }
 
-func (l *ArrayList) GetAllOrders() []*Order {
-	orders := make([]*Order, 0, l.list.Size())
+func (l *ArrayList) GetAllOrders() []model.Order {
+	orders := make([]model.Order, 0, l.list.Size())
 
 	it := l.list.Iterator()
 	for it.Next() {
-		order := it.Value().(*Order)
+		order := it.Value().(model.Order)
 		orders = append(orders, order)
 	}
 	return orders
