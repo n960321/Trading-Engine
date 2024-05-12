@@ -33,6 +33,8 @@ func NewServer(cfg Config, h *handler.Handler) *Server {
 
 	v1.GET("/trade", h.ListTrades)
 
+	v1.GET("/orderbook",h.GetOrderBook)
+
 	return &Server{
 		app: &http.Server{
 			Addr:    cfg.Port,

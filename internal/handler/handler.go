@@ -84,7 +84,6 @@ func (h *Handler) CreateOrder(c *gin.Context) {
 	h.orderBook.Mux.Lock()
 	defer h.orderBook.Mux.Unlock()
 	matchResult := h.orderBook.Match(order)
-	// h.orderBook.Match(order)
 
 	// 更新進db
 	{
@@ -211,4 +210,19 @@ func (h *Handler) ListTrades(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, trades)
+}
+
+type RespOrderBook struct {
+	Buy  []model.Order `json:"buy"`
+	Sell []model.Order `json:"sell"`
+}
+
+func (h *Handler) GetOrderBook(c *gin.Context) {
+	buy := h.orderBook.GetAllBuyOrders()
+	sell := h.orderBook.GetAllSellOrders()
+
+	log.Info().Any("buy orders", buy).Send()
+	log.Info().Any("sell orders", sell).Send()
+
+	c.JSON(http.StatusOK, RespOrderBook{Buy: buy, Sell: sell})
 }
