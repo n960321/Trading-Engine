@@ -67,11 +67,10 @@ func (l *ArrayList) AddOrder(order model.Order) {
 	}
 	i, _ := l.list.Find(find)
 
-	if i == -1 {
-		l.list.Add(order)
-	} else {
+	if i != -1 {
 		l.list.Remove(i)
 	}
+	l.list.Add(order)
 
 	l.list.Sort(l.comparator)
 }
